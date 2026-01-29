@@ -18,6 +18,9 @@ func _ready() -> void:
 	_give_starting_items()
 
 func _setup_ui() -> void:
+	# Set full rect
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+
 	# Background
 	var bg := ColorRect.new()
 	bg.color = UITheme.BG_DARK
@@ -37,16 +40,19 @@ func _setup_ui() -> void:
 	# Content area with tabs
 	var content := HBoxContainer.new()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 0)
 	main_vbox.add_child(content)
 
 	# Left sidebar with materials
 	var sidebar := VBoxContainer.new()
-	sidebar.custom_minimum_size = Vector2(350, 0)
+	sidebar.custom_minimum_size = Vector2(400, 0)
+	sidebar.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(sidebar)
 
 	_materials_panel = MaterialsPanel.new()
 	_materials_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_materials_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sidebar.add_child(_materials_panel)
 
 	# Main content with tabs
@@ -54,55 +60,115 @@ func _setup_ui() -> void:
 	_tab_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab_container.tab_alignment = TabBar.ALIGNMENT_CENTER
+	_tab_container.clip_tabs = false
 	_style_tabs()
 	content.add_child(_tab_container)
 
 	# Shop tab
 	_shop_panel = ShopPanel.new()
 	_shop_panel.name = "المتجر"
+	_shop_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_shop_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab_container.add_child(_shop_panel)
 
 	# Inventory tab
 	_inventory_panel = InventoryPanel.new()
 	_inventory_panel.name = "المخزون"
+	_inventory_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inventory_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab_container.add_child(_inventory_panel)
 
 	# Suppliers tab
 	_suppliers_panel = SuppliersPanel.new()
 	_suppliers_panel.name = "الموردين"
+	_suppliers_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_suppliers_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab_container.add_child(_suppliers_panel)
 
 	# Guild tab
 	_guild_panel = GuildPanel.new()
 	_guild_panel.name = "النقابة"
+	_guild_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_guild_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tab_container.add_child(_guild_panel)
 
-	# Notification container
+	# Notification container (top right)
 	_notification_container = VBoxContainer.new()
 	_notification_container.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_notification_container.position = Vector2(-320, 70)
-	_notification_container.custom_minimum_size = Vector2(300, 0)
-	_notification_container.add_theme_constant_override("separation", 5)
+	_notification_container.set_anchor(SIDE_LEFT, 1.0)
+	_notification_container.set_anchor(SIDE_RIGHT, 1.0)
+	_notification_container.offset_left = -340
+	_notification_container.offset_right = -15
+	_notification_container.offset_top = 80
+	_notification_container.custom_minimum_size = Vector2(320, 0)
+	_notification_container.add_theme_constant_override("separation", 8)
 	add_child(_notification_container)
 
-	# Dialog layer
+	# Dialog layer (above everything)
 	_dialog_layer = CanvasLayer.new()
 	_dialog_layer.layer = 10
 	add_child(_dialog_layer)
 
 	var dialog_bg := ColorRect.new()
 	dialog_bg.name = "DialogBG"
-	dialog_bg.color = Color(0, 0, 0, 0.7)
+	dialog_bg.color = Color(0, 0, 0, 0.75)
 	dialog_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dialog_bg.visible = false
 	dialog_bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	# Allow clicking background to close dialog
+	dialog_bg.gui_input.connect(_on_dialog_bg_input)
 	_dialog_layer.add_child(dialog_bg)
 
 func _style_tabs() -> void:
+	# Panel background
 	var tab_bg := StyleBoxFlat.new()
 	tab_bg.bg_color = UITheme.BG_MEDIUM
-	tab_bg.set_content_margin_all(10)
+	tab_bg.set_content_margin_all(12)
 	_tab_container.add_theme_stylebox_override("panel", tab_bg)
+
+	# Tab font size - larger for better readability
+	_tab_container.add_theme_font_size_override("font_size", UITheme.FONT_HEADER)
+
+	# Tab bar styling - unselected
+	var tab_unselected := StyleBoxFlat.new()
+	tab_unselected.bg_color = UITheme.BG_DARK
+	tab_unselected.set_corner_radius_all(8)
+	tab_unselected.corner_radius_bottom_left = 0
+	tab_unselected.corner_radius_bottom_right = 0
+	tab_unselected.set_content_margin_all(14)
+	tab_unselected.content_margin_bottom = 10
+	tab_unselected.content_margin_top = 12
+	_tab_container.add_theme_stylebox_override("tab_unselected", tab_unselected)
+
+	# Tab bar styling - selected
+	var tab_selected := StyleBoxFlat.new()
+	tab_selected.bg_color = UITheme.BG_MEDIUM
+	tab_selected.border_color = UITheme.ACCENT_GOLD
+	tab_selected.set_border_width_all(0)
+	tab_selected.border_width_top = 3
+	tab_selected.set_corner_radius_all(8)
+	tab_selected.corner_radius_bottom_left = 0
+	tab_selected.corner_radius_bottom_right = 0
+	tab_selected.set_content_margin_all(14)
+	tab_selected.content_margin_bottom = 10
+	tab_selected.content_margin_top = 12
+	_tab_container.add_theme_stylebox_override("tab_selected", tab_selected)
+
+	# Tab bar styling - hovered
+	var tab_hovered := StyleBoxFlat.new()
+	tab_hovered.bg_color = UITheme.BG_LIGHT.darkened(0.1)
+	tab_hovered.set_corner_radius_all(8)
+	tab_hovered.corner_radius_bottom_left = 0
+	tab_hovered.corner_radius_bottom_right = 0
+	tab_hovered.set_content_margin_all(14)
+	tab_hovered.content_margin_bottom = 10
+	tab_hovered.content_margin_top = 12
+	_tab_container.add_theme_stylebox_override("tab_hovered", tab_hovered)
+
+	# Tab text colors
+	_tab_container.add_theme_color_override("font_selected_color", UITheme.ACCENT_GOLD)
+	_tab_container.add_theme_color_override("font_unselected_color", UITheme.TEXT_PRIMARY)
+	_tab_container.add_theme_color_override("font_hovered_color", UITheme.ACCENT_GOLD)
 
 func _connect_signals() -> void:
 	GameManager.notification_added.connect(_on_notification)
@@ -118,7 +184,9 @@ func _on_notification(message: String, type: String) -> void:
 
 	# Limit notifications
 	while _notification_container.get_child_count() > 5:
-		_notification_container.get_child(0).queue_free()
+		var first_child := _notification_container.get_child(0)
+		if first_child:
+			first_child.queue_free()
 
 func _on_serve_customer(customer: CustomerData) -> void:
 	if GameManager.inventory.is_empty():
@@ -130,7 +198,6 @@ func _on_serve_customer(customer: CustomerData) -> void:
 
 	var dialog := ItemSelectDialog.new()
 	dialog.setup(customer, GameManager.inventory)
-	dialog.set_anchors_preset(Control.PRESET_CENTER)
 	dialog.item_selected.connect(func(item: InventoryItem):
 		_hide_dialog_bg()
 		# Small delay then show sale dialog
@@ -138,6 +205,7 @@ func _on_serve_customer(customer: CustomerData) -> void:
 		_show_sale_dialog(customer, item)
 	)
 	dialog.cancelled.connect(_hide_dialog_bg)
+	_center_dialog(dialog)
 	_dialog_layer.add_child(dialog)
 
 func _show_sale_dialog(customer: CustomerData, item: InventoryItem) -> void:
@@ -145,13 +213,13 @@ func _show_sale_dialog(customer: CustomerData, item: InventoryItem) -> void:
 
 	var dialog := SaleDialog.new()
 	dialog.setup(customer, item)
-	dialog.set_anchors_preset(Control.PRESET_CENTER)
 	dialog.sale_completed.connect(_on_sale_completed)
 	dialog.sale_cancelled.connect(_hide_dialog_bg)
 	dialog.customer_left_angry.connect(func():
 		CustomerSystem.customer_leaves_angry(customer)
 		_hide_dialog_bg()
 	)
+	_center_dialog(dialog)
 	_dialog_layer.add_child(dialog)
 
 func _on_sale_completed(_item: InventoryItem, _price: int) -> void:
@@ -164,9 +232,9 @@ func _on_order_dialog_requested(supplier: SupplierData) -> void:
 
 	var dialog := OrderDialog.new()
 	dialog.set_supplier(supplier)
-	dialog.set_anchors_preset(Control.PRESET_CENTER)
 	dialog.order_confirmed.connect(_on_order_confirmed)
 	dialog.cancelled.connect(_hide_dialog_bg)
+	_center_dialog(dialog)
 	_dialog_layer.add_child(dialog)
 
 func _on_order_confirmed(item: ItemData, quantity: int, supplier: SupplierData) -> void:
@@ -180,27 +248,48 @@ func _on_mission_dialog_requested(adventurer: AdventurerData) -> void:
 
 	var dialog := MissionDialog.new()
 	dialog.set_adventurer(adventurer)
-	dialog.set_anchors_preset(Control.PRESET_CENTER)
 	dialog.mission_started.connect(_on_mission_started)
 	dialog.cancelled.connect(_hide_dialog_bg)
+	_center_dialog(dialog)
 	_dialog_layer.add_child(dialog)
 
 func _on_mission_started(_adventurer: AdventurerData, _dungeon_id: String) -> void:
 	_hide_dialog_bg()
 	_guild_panel.refresh()
 
+func _center_dialog(dialog: Control) -> void:
+	# Center the dialog on screen
+	dialog.set_anchors_preset(Control.PRESET_CENTER)
+	dialog.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	dialog.grow_vertical = Control.GROW_DIRECTION_BOTH
+
 func _show_dialog_bg() -> void:
 	var bg := _dialog_layer.get_node("DialogBG")
 	bg.visible = true
 
+	# Fade in animation
+	bg.modulate.a = 0
+	var tween := create_tween()
+	tween.tween_property(bg, "modulate:a", 1.0, 0.2)
+
 func _hide_dialog_bg() -> void:
 	var bg := _dialog_layer.get_node("DialogBG")
-	bg.visible = false
 
-	# Remove dialogs
-	for child in _dialog_layer.get_children():
-		if child.name != "DialogBG":
-			child.queue_free()
+	# Fade out animation
+	var tween := create_tween()
+	tween.tween_property(bg, "modulate:a", 0.0, 0.15)
+	tween.tween_callback(func():
+		bg.visible = false
+		# Remove dialogs
+		for child in _dialog_layer.get_children():
+			if child.name != "DialogBG":
+				child.queue_free()
+	)
+
+func _on_dialog_bg_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_hide_dialog_bg()
 
 func _give_starting_items() -> void:
 	# Give player some starting inventory and materials

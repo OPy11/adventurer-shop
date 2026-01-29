@@ -5,6 +5,7 @@ signal serve_customer(customer: CustomerData)
 
 var _title_label: Label
 var _status_label: Label
+var _scroll_container: ScrollContainer
 var _customers_container: HBoxContainer
 var _empty_label: Label
 
@@ -18,45 +19,59 @@ func _setup_ui() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 10)
+	main_vbox.add_theme_constant_override("separation", 15)
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(main_vbox)
 
 	# Header
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 15)
 	main_vbox.add_child(header)
 
 	_title_label = Label.new()
 	_title_label.text = "المتجر"
-	_title_label.add_theme_font_size_override("font_size", 20)
-	_title_label.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
+	UITheme.style_label(_title_label, UITheme.FONT_TITLE, UITheme.ACCENT_GOLD)
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title_label)
 
 	_status_label = Label.new()
-	_status_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(_status_label, UITheme.FONT_BODY, UITheme.SUCCESS)
 	header.add_child(_status_label)
 
-	# Customers label
+	# Customers section
+	var customers_header := HBoxContainer.new()
+	main_vbox.add_child(customers_header)
+
 	var customers_title := Label.new()
 	customers_title.text = "الزبائن المنتظرين:"
-	customers_title.add_theme_font_size_override("font_size", 14)
-	main_vbox.add_child(customers_title)
+	UITheme.style_label(customers_title, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
+	customers_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	customers_header.add_child(customers_title)
 
-	# Customers scroll
-	var scroll := ScrollContainer.new()
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 160)
-	main_vbox.add_child(scroll)
+	# Customers scroll container
+	_scroll_container = ScrollContainer.new()
+	_scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll_container.custom_minimum_size = Vector2(0, 220)
+	UITheme.style_scroll_container(_scroll_container)
+	main_vbox.add_child(_scroll_container)
 
 	_customers_container = HBoxContainer.new()
-	_customers_container.add_theme_constant_override("separation", 10)
-	scroll.add_child(_customers_container)
+	_customers_container.add_theme_constant_override("separation", 15)
+	_customers_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll_container.add_child(_customers_container)
 
+	# Empty state
 	_empty_label = Label.new()
-	_empty_label.text = "لا يوجد زبائن حالياً"
-	_empty_label.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
+	_empty_label.text = "لا يوجد زبائن حالياً\nانتظر قليلاً أو غير سرعة الوقت"
+	UITheme.style_label(_empty_label, UITheme.FONT_BODY, UITheme.TEXT_MUTED)
 	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_empty_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_empty_label.visible = false
 	main_vbox.add_child(_empty_label)
 
@@ -73,10 +88,10 @@ func _refresh_customers() -> void:
 
 	if customers.is_empty():
 		_empty_label.visible = true
-		_customers_container.visible = false
+		_scroll_container.visible = false
 	else:
 		_empty_label.visible = false
-		_customers_container.visible = true
+		_scroll_container.visible = true
 
 		for customer in customers:
 			_add_customer_card(customer)
@@ -92,10 +107,10 @@ func _add_customer_card(customer: CustomerData) -> void:
 
 func _update_status() -> void:
 	if GameManager.is_shop_open:
-		_status_label.text = "مفتوح 🟢"
+		_status_label.text = "🟢 مفتوح"
 		_status_label.add_theme_color_override("font_color", UITheme.SUCCESS)
 	else:
-		_status_label.text = "مغلق 🔴"
+		_status_label.text = "🔴 مغلق"
 		_status_label.add_theme_color_override("font_color", UITheme.ERROR)
 
 func _on_customer_spawned(_customer: CustomerData) -> void:

@@ -9,6 +9,7 @@ var filter_category: int = -1 # -1 = all
 
 var _title_label: Label
 var _filter_buttons: HBoxContainer
+var _items_scroll: ScrollContainer
 var _items_grid: GridContainer
 var _details_panel: PanelContainer
 var _price_editor: HBoxContainer
@@ -24,60 +25,77 @@ func _setup_ui() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 10)
+	main_vbox.add_theme_constant_override("separation", 12)
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(main_vbox)
 
 	# Header
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 15)
 	main_vbox.add_child(header)
 
 	_title_label = Label.new()
 	_title_label.text = "المخزون"
-	_title_label.add_theme_font_size_override("font_size", 20)
-	_title_label.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
+	UITheme.style_label(_title_label, UITheme.FONT_TITLE, UITheme.ACCENT_GOLD)
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title_label)
 
 	# Filters
 	_filter_buttons = HBoxContainer.new()
-	_filter_buttons.add_theme_constant_override("separation", 5)
+	_filter_buttons.add_theme_constant_override("separation", 8)
 	main_vbox.add_child(_filter_buttons)
 
 	_add_filter_button("الكل", -1)
-	_add_filter_button("أسلحة", Enums.ItemCategory.WEAPON)
-	_add_filter_button("دروع", Enums.ItemCategory.ARMOR)
-	_add_filter_button("جرعات", Enums.ItemCategory.POTION)
-	_add_filter_button("إكسسوارات", Enums.ItemCategory.ACCESSORY)
+	_add_filter_button("⚔ أسلحة", Enums.ItemCategory.WEAPON)
+	_add_filter_button("🛡 دروع", Enums.ItemCategory.ARMOR)
+	_add_filter_button("🧪 جرعات", Enums.ItemCategory.POTION)
+	_add_filter_button("💍 إكسسوارات", Enums.ItemCategory.ACCESSORY)
 
 	# Content split
 	var hsplit := HSplitContainer.new()
 	hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hsplit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hsplit.split_offset = -300
 	main_vbox.add_child(hsplit)
 
-	# Items grid
-	var items_scroll := ScrollContainer.new()
-	items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	items_scroll.custom_minimum_size = Vector2(400, 300)
-	hsplit.add_child(items_scroll)
+	# Items area
+	var items_container := VBoxContainer.new()
+	items_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	items_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hsplit.add_child(items_container)
+
+	# Items grid scroll
+	_items_scroll = ScrollContainer.new()
+	_items_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_items_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_items_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_items_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_items_scroll.custom_minimum_size = Vector2(450, 350)
+	UITheme.style_scroll_container(_items_scroll)
+	items_container.add_child(_items_scroll)
 
 	_items_grid = GridContainer.new()
 	_items_grid.columns = 2
-	_items_grid.add_theme_constant_override("h_separation", 8)
-	_items_grid.add_theme_constant_override("v_separation", 8)
-	items_scroll.add_child(_items_grid)
+	_items_grid.add_theme_constant_override("h_separation", 10)
+	_items_grid.add_theme_constant_override("v_separation", 10)
+	_items_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_items_scroll.add_child(_items_grid)
 
 	_empty_label = Label.new()
-	_empty_label.text = "المخزون فارغ"
-	_empty_label.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
+	_empty_label.text = "المخزون فارغ\nاطلب منتجات من الموردين"
+	UITheme.style_label(_empty_label, UITheme.FONT_BODY, UITheme.TEXT_MUTED)
 	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_empty_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_empty_label.visible = false
-	items_scroll.add_child(_empty_label)
+	items_container.add_child(_empty_label)
 
 	# Details panel
 	_details_panel = PanelContainer.new()
-	_details_panel.custom_minimum_size = Vector2(250, 0)
-	var dp_style := UITheme.create_panel_stylebox(UITheme.BG_DARK)
-	_details_panel.add_theme_stylebox_override("panel", dp_style)
+	_details_panel.custom_minimum_size = Vector2(300, 0)
+	_details_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK))
 	_details_panel.visible = false
 	hsplit.add_child(_details_panel)
 
@@ -88,49 +106,67 @@ func _add_filter_button(text: String, category: int) -> void:
 	btn.text = text
 	btn.toggle_mode = true
 	btn.button_pressed = category == -1
+	btn.custom_minimum_size = Vector2(0, 36)
 	btn.pressed.connect(func(): _set_filter(category))
-
-	var style := UITheme.create_button_stylebox(UITheme.BG_LIGHT)
-	btn.add_theme_stylebox_override("normal", style)
-	var pressed_style := UITheme.create_button_stylebox(UITheme.ACCENT_GOLD.darkened(0.5), true)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
+	UITheme.style_button(btn, UITheme.BG_LIGHT)
 
 	_filter_buttons.add_child(btn)
 
 func _setup_details_panel() -> void:
 	var vbox := VBoxContainer.new()
 	vbox.name = "DetailsContent"
-	vbox.add_theme_constant_override("separation", 10)
+	vbox.add_theme_constant_override("separation", 12)
 	_details_panel.add_child(vbox)
 
 	var detail_title := Label.new()
 	detail_title.name = "DetailTitle"
-	detail_title.add_theme_font_size_override("font_size", 16)
+	UITheme.style_label(detail_title, UITheme.FONT_HEADER, UITheme.TEXT_PRIMARY)
+	detail_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(detail_title)
 
 	var detail_icon := Label.new()
 	detail_icon.name = "DetailIcon"
-	detail_icon.add_theme_font_size_override("font_size", 48)
+	detail_icon.add_theme_font_size_override("font_size", 56)
 	detail_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(detail_icon)
 
 	var detail_quality := Label.new()
 	detail_quality.name = "DetailQuality"
-	detail_quality.add_theme_font_size_override("font_size", 12)
+	UITheme.style_label(detail_quality, UITheme.FONT_BODY, UITheme.TEXT_SECONDARY)
+	detail_quality.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(detail_quality)
+
+	# Separator
+	var sep := HSeparator.new()
+	sep.add_theme_stylebox_override("separator", UITheme.create_flat_stylebox(UITheme.BORDER))
+	vbox.add_child(sep)
 
 	var detail_stats := VBoxContainer.new()
 	detail_stats.name = "DetailStats"
+	detail_stats.add_theme_constant_override("separation", 6)
 	vbox.add_child(detail_stats)
 
-	# Price editor
+	# Price editor panel
+	var price_panel := PanelContainer.new()
+	price_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_MEDIUM, 1))
+	vbox.add_child(price_panel)
+
+	var price_vbox := VBoxContainer.new()
+	price_vbox.add_theme_constant_override("separation", 8)
+	price_panel.add_child(price_vbox)
+
+	var price_title := Label.new()
+	price_title.text = "تعديل السعر"
+	UITheme.style_label(price_title, UITheme.FONT_BODY, UITheme.ACCENT_GOLD)
+	price_vbox.add_child(price_title)
+
 	_price_editor = HBoxContainer.new()
-	_price_editor.add_theme_constant_override("separation", 5)
-	vbox.add_child(_price_editor)
+	_price_editor.add_theme_constant_override("separation", 10)
+	price_vbox.add_child(_price_editor)
 
 	var price_label := Label.new()
 	price_label.text = "السعر:"
-	price_label.add_theme_font_size_override("font_size", 12)
+	UITheme.style_label(price_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	_price_editor.add_child(price_label)
 
 	var price_spin := SpinBox.new()
@@ -141,11 +177,16 @@ func _setup_details_panel() -> void:
 	price_spin.value_changed.connect(_on_price_edited)
 	_price_editor.add_child(price_spin)
 
+	var gold_label := Label.new()
+	gold_label.text = "ذهب"
+	UITheme.style_label(gold_label, UITheme.FONT_BODY, UITheme.ACCENT_GOLD)
+	_price_editor.add_child(gold_label)
+
 	var market_label := Label.new()
 	market_label.name = "MarketPrice"
-	market_label.add_theme_font_size_override("font_size", 10)
-	market_label.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
-	vbox.add_child(market_label)
+	UITheme.style_label(market_label, UITheme.FONT_SMALL, UITheme.TEXT_MUTED)
+	market_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	price_vbox.add_child(market_label)
 
 func _connect_signals() -> void:
 	GameManager.gold_changed.connect(func(_g): _refresh_inventory())
@@ -155,7 +196,13 @@ func _set_filter(category: int) -> void:
 	# Update button states
 	for i in range(_filter_buttons.get_child_count()):
 		var btn := _filter_buttons.get_child(i) as Button
-		btn.button_pressed = (i == 0 and category == -1) or (i > 0 and category == i - 1)
+		var is_active := (i == 0 and category == -1) or (i > 0 and category == i - 1)
+		btn.button_pressed = is_active
+		if is_active:
+			var active_style := UITheme.create_button_stylebox(UITheme.ACCENT_GOLD.darkened(0.5), true)
+			btn.add_theme_stylebox_override("normal", active_style)
+		else:
+			UITheme.style_button(btn, UITheme.BG_LIGHT)
 	_refresh_inventory()
 
 func _refresh_inventory() -> void:
@@ -172,10 +219,10 @@ func _refresh_inventory() -> void:
 
 	if filtered.is_empty():
 		_empty_label.visible = true
-		_items_grid.visible = false
+		_items_scroll.visible = false
 	else:
 		_empty_label.visible = false
-		_items_grid.visible = true
+		_items_scroll.visible = true
 
 		for item in filtered:
 			var slot := ItemSlot.new()
@@ -225,17 +272,25 @@ func _update_details_panel() -> void:
 		child.queue_free()
 
 	for stat_name in data.stats:
+		var stat_hbox := HBoxContainer.new()
+		stats.add_child(stat_hbox)
+
 		var stat_label := Label.new()
-		stat_label.text = "%s: %d" % [stat_name, data.stats[stat_name]]
-		stat_label.add_theme_font_size_override("font_size", 11)
-		stat_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
-		stats.add_child(stat_label)
+		stat_label.text = "%s:" % stat_name
+		stat_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		UITheme.style_label(stat_label, UITheme.FONT_SMALL, UITheme.TEXT_MUTED)
+		stat_hbox.add_child(stat_label)
+
+		var stat_value := Label.new()
+		stat_value.text = str(data.stats[stat_name])
+		UITheme.style_label(stat_value, UITheme.FONT_SMALL, UITheme.TEXT_PRIMARY)
+		stat_hbox.add_child(stat_value)
 
 	price_spin.value = selected_item.listed_price
 
 	var fair := EconomyManager.get_fair_price(data, selected_item.quality)
 	var trend := EconomyManager.get_trend_icon(data.id)
-	market.text = "سعر السوق: %d %s" % [fair, trend]
+	market.text = "💡 سعر السوق: %d %s" % [fair, trend]
 
 func _on_price_edited(value: float) -> void:
 	if selected_item:

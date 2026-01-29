@@ -28,131 +28,161 @@ func _ready() -> void:
 	_setup_ui()
 
 func _setup_ui() -> void:
-	custom_minimum_size = Vector2(400, 450)
+	custom_minimum_size = Vector2(550, 600)
+	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-	var style := StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_MEDIUM
-	style.border_color = UITheme.ACCENT_GOLD
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(12)
-	style.set_content_margin_all(20)
+	var style := UITheme.create_dialog_stylebox()
 	add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 12)
+	main_vbox.add_theme_constant_override("separation", 16)
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(main_vbox)
 
 	# Title
-	var title := Label.new()
-	title.text = "عملية البيع"
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title := UITheme.create_title_label("عملية البيع")
 	main_vbox.add_child(title)
 
-	# Customer info
+	# Separator
+	var sep1 := HSeparator.new()
+	sep1.add_theme_stylebox_override("separator", UITheme.create_flat_stylebox(UITheme.BORDER))
+	main_vbox.add_child(sep1)
+
+	# Customer info panel
 	var customer_panel := PanelContainer.new()
-	var cp_style := UITheme.create_panel_stylebox(UITheme.BG_DARK)
-	customer_panel.add_theme_stylebox_override("panel", cp_style)
+	customer_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
 	main_vbox.add_child(customer_panel)
 
 	var customer_hbox := HBoxContainer.new()
-	customer_hbox.add_theme_constant_override("separation", 10)
+	customer_hbox.add_theme_constant_override("separation", 15)
 	customer_panel.add_child(customer_hbox)
 
 	_customer_portrait = Label.new()
-	_customer_portrait.custom_minimum_size = Vector2(50, 50)
+	_customer_portrait.custom_minimum_size = Vector2(60, 60)
 	_customer_portrait.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_customer_portrait.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_customer_portrait.add_theme_font_size_override("font_size", 36)
+	_customer_portrait.add_theme_font_size_override("font_size", 40)
 	customer_hbox.add_child(_customer_portrait)
 
 	var customer_info := VBoxContainer.new()
+	customer_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	customer_hbox.add_child(customer_info)
 
 	_customer_name = Label.new()
-	_customer_name.add_theme_font_size_override("font_size", 16)
+	UITheme.style_label(_customer_name, UITheme.FONT_HEADER, UITheme.TEXT_PRIMARY)
 	customer_info.add_child(_customer_name)
 
 	_customer_mood = Label.new()
-	_customer_mood.add_theme_font_size_override("font_size", 12)
+	UITheme.style_label(_customer_mood, UITheme.FONT_BODY, UITheme.TEXT_SECONDARY)
 	customer_info.add_child(_customer_mood)
 
-	# Item display
+	# Item display section
 	var item_label := Label.new()
-	item_label.text = "المنتج المطلوب:"
-	item_label.add_theme_font_size_override("font_size", 14)
+	item_label.text = "المنتج المعروض:"
+	UITheme.style_label(item_label, UITheme.FONT_BODY, UITheme.ACCENT_GOLD)
 	main_vbox.add_child(item_label)
 
+	var item_panel := PanelContainer.new()
+	item_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
+	main_vbox.add_child(item_panel)
+
 	_item_display = VBoxContainer.new()
-	main_vbox.add_child(_item_display)
+	_item_display.add_theme_constant_override("separation", 8)
+	item_panel.add_child(_item_display)
 
 	# Price controls
+	var price_panel := PanelContainer.new()
+	price_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
+	main_vbox.add_child(price_panel)
+
+	var price_vbox := VBoxContainer.new()
+	price_vbox.add_theme_constant_override("separation", 10)
+	price_panel.add_child(price_vbox)
+
 	var price_hbox := HBoxContainer.new()
-	price_hbox.add_theme_constant_override("separation", 10)
-	main_vbox.add_child(price_hbox)
+	price_hbox.add_theme_constant_override("separation", 15)
+	price_vbox.add_child(price_hbox)
 
 	var price_label := Label.new()
 	price_label.text = "السعر المطلوب:"
-	price_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(price_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	price_hbox.add_child(price_label)
 
 	_price_spin = SpinBox.new()
 	_price_spin.min_value = 1
 	_price_spin.max_value = 10000
+	_price_spin.custom_minimum_size = Vector2(120, 0)
 	_price_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_price_spin.value_changed.connect(_on_price_changed)
 	price_hbox.add_child(_price_spin)
 
+	var gold_label := Label.new()
+	gold_label.text = "ذهب"
+	UITheme.style_label(gold_label, UITheme.FONT_BODY, UITheme.ACCENT_GOLD)
+	price_hbox.add_child(gold_label)
+
 	_fair_price_label = Label.new()
-	_fair_price_label.add_theme_font_size_override("font_size", 12)
-	_fair_price_label.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
-	main_vbox.add_child(_fair_price_label)
+	UITheme.style_label(_fair_price_label, UITheme.FONT_SMALL, UITheme.TEXT_MUTED)
+	_fair_price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	price_vbox.add_child(_fair_price_label)
 
 	# Response area
+	var response_panel := PanelContainer.new()
+	response_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_PANEL, 1))
+	response_panel.custom_minimum_size = Vector2(0, 80)
+	main_vbox.add_child(response_panel)
+
 	_response_label = Label.new()
-	_response_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(_response_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	_response_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_response_label.custom_minimum_size = Vector2(0, 60)
-	main_vbox.add_child(_response_label)
+	_response_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_response_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	response_panel.add_child(_response_label)
+
+	# Separator
+	var sep2 := HSeparator.new()
+	sep2.add_theme_stylebox_override("separator", UITheme.create_flat_stylebox(UITheme.BORDER))
+	main_vbox.add_child(sep2)
 
 	# Buttons
 	var btn_hbox := HBoxContainer.new()
-	btn_hbox.add_theme_constant_override("separation", 8)
+	btn_hbox.add_theme_constant_override("separation", 12)
 	main_vbox.add_child(btn_hbox)
 
 	_offer_button = Button.new()
 	_offer_button.text = "قدم العرض"
 	_offer_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_offer_button.custom_minimum_size = Vector2(0, 45)
 	_offer_button.pressed.connect(_on_offer_pressed)
-	var offer_style := UITheme.create_button_stylebox(UITheme.INFO.darkened(0.5))
-	_offer_button.add_theme_stylebox_override("normal", offer_style)
+	UITheme.style_button(_offer_button, UITheme.INFO.darkened(0.4))
 	btn_hbox.add_child(_offer_button)
 
 	_accept_button = Button.new()
 	_accept_button.text = "قبول"
 	_accept_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_accept_button.custom_minimum_size = Vector2(0, 45)
 	_accept_button.visible = false
 	_accept_button.pressed.connect(_on_accept_pressed)
-	var accept_style := UITheme.create_button_stylebox(UITheme.SUCCESS.darkened(0.5))
-	_accept_button.add_theme_stylebox_override("normal", accept_style)
+	UITheme.style_button(_accept_button, UITheme.SUCCESS.darkened(0.4))
 	btn_hbox.add_child(_accept_button)
 
 	_reject_button = Button.new()
 	_reject_button.text = "رفض"
 	_reject_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_reject_button.custom_minimum_size = Vector2(0, 45)
 	_reject_button.visible = false
 	_reject_button.pressed.connect(_on_reject_pressed)
-	var reject_style := UITheme.create_button_stylebox(UITheme.ERROR.darkened(0.5))
-	_reject_button.add_theme_stylebox_override("normal", reject_style)
+	UITheme.style_button(_reject_button, UITheme.ERROR.darkened(0.4))
 	btn_hbox.add_child(_reject_button)
 
 	_close_button = Button.new()
 	_close_button.text = "إغلاق"
 	_close_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_close_button.custom_minimum_size = Vector2(0, 45)
 	_close_button.pressed.connect(func(): sale_cancelled.emit(); queue_free())
-	var close_style := UITheme.create_button_stylebox(UITheme.BG_LIGHT)
-	_close_button.add_theme_stylebox_override("normal", close_style)
+	UITheme.style_button(_close_button, UITheme.BG_LIGHT)
 	btn_hbox.add_child(_close_button)
 
 func setup(c: CustomerData, item: InventoryItem) -> void:
@@ -163,7 +193,7 @@ func setup(c: CustomerData, item: InventoryItem) -> void:
 	_update_display()
 
 func _update_display() -> void:
-	if not customer or not inventory_item:
+	if not customer or not inventory_item or not _customer_portrait:
 		return
 
 	_customer_portrait.text = customer.portrait_char
@@ -175,37 +205,47 @@ func _update_display() -> void:
 		child.queue_free()
 
 	var item_hbox := HBoxContainer.new()
+	item_hbox.add_theme_constant_override("separation", 12)
 	_item_display.add_child(item_hbox)
 
 	var icon := Label.new()
 	icon.text = inventory_item.item_data.icon_char
-	icon.add_theme_font_size_override("font_size", 24)
+	icon.add_theme_font_size_override("font_size", 32)
 	icon.add_theme_color_override("font_color", UITheme.get_rarity_color(inventory_item.item_data.rarity))
 	item_hbox.add_child(icon)
 
+	var item_info := VBoxContainer.new()
+	item_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item_hbox.add_child(item_info)
+
 	var name_lbl := Label.new()
-	name_lbl.text = " %s (%s)" % [inventory_item.item_data.name_ar, Enums.get_quality_name(inventory_item.quality)]
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	item_hbox.add_child(name_lbl)
+	name_lbl.text = inventory_item.item_data.name_ar
+	UITheme.style_label(name_lbl, UITheme.FONT_BODY, UITheme.get_rarity_color(inventory_item.item_data.rarity))
+	item_info.add_child(name_lbl)
+
+	var quality_lbl := Label.new()
+	quality_lbl.text = "الجودة: %s | الكمية: %d" % [Enums.get_quality_name(inventory_item.quality), inventory_item.quantity]
+	UITheme.style_label(quality_lbl, UITheme.FONT_SMALL, UITheme.get_quality_color(inventory_item.quality))
+	item_info.add_child(quality_lbl)
 
 	_price_spin.value = asking_price
-	_fair_price_label.text = "السعر العادل: %d ذهب" % fair_price
+	_fair_price_label.text = "💡 السعر العادل: %d ذهب" % fair_price
 
 func _update_mood_display() -> void:
 	var mood_text := ""
 	var mood_color := Color.WHITE
 	match customer.current_mood:
 		Enums.CustomerMood.HAPPY:
-			mood_text = "😊 سعيد"
+			mood_text = "😊 سعيد - مستعد للشراء"
 			mood_color = UITheme.SUCCESS
 		Enums.CustomerMood.NEUTRAL:
 			mood_text = "😐 محايد"
 			mood_color = UITheme.TEXT_SECONDARY
 		Enums.CustomerMood.ANNOYED:
-			mood_text = "😠 منزعج"
+			mood_text = "😠 منزعج - حذر!"
 			mood_color = UITheme.WARNING
 		Enums.CustomerMood.ANGRY:
-			mood_text = "😡 غاضب"
+			mood_text = "😡 غاضب جداً!"
 			mood_color = UITheme.ERROR
 
 	_customer_mood.text = mood_text

@@ -21,99 +21,141 @@ func _ready() -> void:
 	_populate_items()
 
 func _setup_ui() -> void:
-	custom_minimum_size = Vector2(450, 500)
+	custom_minimum_size = Vector2(600, 650)
+	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
-	var style := StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_MEDIUM
-	style.border_color = UITheme.ACCENT_GOLD
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(12)
-	style.set_content_margin_all(20)
+	var style := UITheme.create_dialog_stylebox()
 	add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 12)
+	main_vbox.add_theme_constant_override("separation", 16)
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(main_vbox)
 
 	# Title
 	_title_label = Label.new()
-	_title_label.add_theme_font_size_override("font_size", 20)
-	_title_label.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
+	UITheme.style_label(_title_label, UITheme.FONT_TITLE, UITheme.ACCENT_GOLD)
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_title_label)
 
-	# Item list
+	# Separator
+	var sep1 := HSeparator.new()
+	sep1.add_theme_stylebox_override("separator", UITheme.create_flat_stylebox(UITheme.BORDER))
+	main_vbox.add_child(sep1)
+
+	# Item list section
 	var list_label := Label.new()
 	list_label.text = "اختر المنتج:"
-	list_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(list_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	main_vbox.add_child(list_label)
 
-	_item_list = ItemList.new()
-	_item_list.custom_minimum_size = Vector2(0, 150)
-	_item_list.item_selected.connect(_on_item_selected)
-	_style_item_list()
-	main_vbox.add_child(_item_list)
+	var list_scroll := ScrollContainer.new()
+	list_scroll.custom_minimum_size = Vector2(0, 180)
+	list_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	UITheme.style_scroll_container(list_scroll)
+	main_vbox.add_child(list_scroll)
 
-	# Quantity
+	_item_list = ItemList.new()
+	_item_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_item_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_item_list.item_selected.connect(_on_item_selected)
+	_item_list.auto_height = true
+	_style_item_list()
+	list_scroll.add_child(_item_list)
+
+	# Quantity section
+	var qty_panel := PanelContainer.new()
+	qty_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
+	main_vbox.add_child(qty_panel)
+
 	var qty_hbox := HBoxContainer.new()
-	qty_hbox.add_theme_constant_override("separation", 10)
-	main_vbox.add_child(qty_hbox)
+	qty_hbox.add_theme_constant_override("separation", 15)
+	qty_panel.add_child(qty_hbox)
 
 	var qty_label := Label.new()
 	qty_label.text = "الكمية:"
-	qty_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(qty_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	qty_hbox.add_child(qty_label)
 
 	_quantity_spin = SpinBox.new()
 	_quantity_spin.min_value = 1
 	_quantity_spin.max_value = 10
 	_quantity_spin.value = 1
+	_quantity_spin.custom_minimum_size = Vector2(100, 0)
 	_quantity_spin.value_changed.connect(_on_quantity_changed)
 	qty_hbox.add_child(_quantity_spin)
 
-	# Cost breakdown
+	var qty_spacer := Control.new()
+	qty_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	qty_hbox.add_child(qty_spacer)
+
+	# Cost breakdown section
 	var cost_label := Label.new()
 	cost_label.text = "تفاصيل التكلفة:"
-	cost_label.add_theme_font_size_override("font_size", 14)
+	UITheme.style_label(cost_label, UITheme.FONT_BODY, UITheme.ACCENT_GOLD)
 	main_vbox.add_child(cost_label)
 
+	var cost_panel := PanelContainer.new()
+	cost_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
+	main_vbox.add_child(cost_panel)
+
 	_cost_breakdown = VBoxContainer.new()
-	main_vbox.add_child(_cost_breakdown)
+	_cost_breakdown.add_theme_constant_override("separation", 8)
+	cost_panel.add_child(_cost_breakdown)
 
 	# Materials check
 	_materials_check = Label.new()
-	_materials_check.add_theme_font_size_override("font_size", 12)
+	UITheme.style_label(_materials_check, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
+	_materials_check.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	main_vbox.add_child(_materials_check)
+
+	# Separator
+	var sep2 := HSeparator.new()
+	sep2.add_theme_stylebox_override("separator", UITheme.create_flat_stylebox(UITheme.BORDER))
+	main_vbox.add_child(sep2)
 
 	# Buttons
 	var btn_hbox := HBoxContainer.new()
-	btn_hbox.add_theme_constant_override("separation", 10)
+	btn_hbox.add_theme_constant_override("separation", 15)
 	main_vbox.add_child(btn_hbox)
 
 	_cancel_button = Button.new()
 	_cancel_button.text = "إلغاء"
 	_cancel_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_cancel_button.custom_minimum_size = Vector2(0, 45)
 	_cancel_button.pressed.connect(func(): cancelled.emit(); queue_free())
-	var cancel_style := UITheme.create_button_stylebox(UITheme.ERROR.darkened(0.5))
-	_cancel_button.add_theme_stylebox_override("normal", cancel_style)
+	UITheme.style_button(_cancel_button, UITheme.ERROR.darkened(0.4))
 	btn_hbox.add_child(_cancel_button)
 
 	_confirm_button = Button.new()
 	_confirm_button.text = "تأكيد الطلب"
 	_confirm_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_confirm_button.custom_minimum_size = Vector2(0, 45)
 	_confirm_button.disabled = true
 	_confirm_button.pressed.connect(_on_confirm)
-	var confirm_style := UITheme.create_button_stylebox(UITheme.SUCCESS.darkened(0.5))
-	_confirm_button.add_theme_stylebox_override("normal", confirm_style)
+	UITheme.style_button(_confirm_button, UITheme.SUCCESS.darkened(0.4))
 	btn_hbox.add_child(_confirm_button)
 
 func _style_item_list() -> void:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = UITheme.BG_DARK
 	bg.set_corner_radius_all(6)
+	bg.set_content_margin_all(8)
 	_item_list.add_theme_stylebox_override("panel", bg)
+	_item_list.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	_item_list.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
 	_item_list.add_theme_color_override("font_selected_color", UITheme.ACCENT_GOLD)
+	_item_list.add_theme_font_size_override("font_size", UITheme.FONT_BODY)
+
+	# Selected item background
+	var selected_bg := StyleBoxFlat.new()
+	selected_bg.bg_color = UITheme.ACCENT_GOLD.darkened(0.7)
+	selected_bg.set_corner_radius_all(4)
+	_item_list.add_theme_stylebox_override("selected", selected_bg)
+	_item_list.add_theme_stylebox_override("selected_focus", selected_bg)
 
 func set_supplier(s: SupplierData) -> void:
 	supplier = s
@@ -142,7 +184,7 @@ func _populate_items() -> void:
 
 		if can_make:
 			var specialty := " ★" if item.id in supplier.specialties else ""
-			var display := "%s %s%s" % [item.icon_char, item.name_ar, specialty]
+			var display := "%s  %s%s" % [item.icon_char, item.name_ar, specialty]
 			_item_list.add_item(display)
 			_item_list.set_item_metadata(_item_list.item_count - 1, item)
 
@@ -168,9 +210,9 @@ func _update_cost_breakdown() -> void:
 	# Material cost
 	_add_cost_line("تكلفة المواد:", "%d ذهب" % cost.material_cost)
 	_add_cost_line("أجرة العمل:", "%d ذهب" % cost.labor_cost)
-	_add_cost_line("المجموع:", "%d ذهب" % cost.total_cost, UITheme.ACCENT_GOLD)
+	_add_cost_line("المجموع:", "%d ذهب" % cost.total_cost, UITheme.ACCENT_GOLD, true)
 	_add_cost_line("وقت التصنيع:", "%.1f ساعة" % cost.craft_time_hours)
-	_add_cost_line("الجودة المتوقعة:", Enums.get_quality_name(cost.expected_quality))
+	_add_cost_line("الجودة المتوقعة:", Enums.get_quality_name(cost.expected_quality), UITheme.get_quality_color(cost.expected_quality))
 	_add_cost_line("نسبة النجاح:", "%d%%" % int(cost.success_rate * 100))
 
 	# Materials check
@@ -183,21 +225,19 @@ func _update_cost_breakdown() -> void:
 		_materials_check.add_theme_color_override("font_color", UITheme.ERROR)
 		_confirm_button.disabled = true
 
-func _add_cost_line(label: String, value: String, color: Color = UITheme.TEXT_SECONDARY) -> void:
+func _add_cost_line(label_text: String, value: String, color: Color = UITheme.TEXT_SECONDARY, bold: bool = false) -> void:
 	var hbox := HBoxContainer.new()
 	_cost_breakdown.add_child(hbox)
 
 	var lbl := Label.new()
-	lbl.text = label
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
+	lbl.text = label_text
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UITheme.style_label(lbl, UITheme.FONT_BODY if bold else UITheme.FONT_SMALL, UITheme.TEXT_MUTED)
 	hbox.add_child(lbl)
 
 	var val := Label.new()
 	val.text = value
-	val.add_theme_font_size_override("font_size", 12)
-	val.add_theme_color_override("font_color", color)
+	UITheme.style_label(val, UITheme.FONT_BODY if bold else UITheme.FONT_SMALL, color)
 	hbox.add_child(val)
 
 func _on_confirm() -> void:

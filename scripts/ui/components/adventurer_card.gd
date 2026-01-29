@@ -19,6 +19,7 @@ var _status_label: Label
 var _action_button: Button
 var _fire_button: Button
 var _progress_bar: ProgressBar
+var _tween: Tween
 
 func _ready() -> void:
 	_setup_ui()
@@ -32,115 +33,119 @@ func _process(_delta: float) -> void:
 		_progress_bar.visible = false
 
 func _setup_ui() -> void:
-	custom_minimum_size = Vector2(240, 150)
+	custom_minimum_size = Vector2(260, 190)
 
-	var style := StyleBoxFlat.new()
-	style.bg_color = UITheme.BG_PANEL
-	style.border_color = UITheme.BORDER
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(10)
+	var style := UITheme.create_card_stylebox(UITheme.BG_PANEL)
 	add_theme_stylebox_override("panel", style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 6)
+	main_vbox.add_theme_constant_override("separation", 8)
 	add_child(main_vbox)
 
 	# Header
 	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
+	header.add_theme_constant_override("separation", 12)
 	main_vbox.add_child(header)
 
 	_portrait_label = Label.new()
-	_portrait_label.custom_minimum_size = Vector2(45, 45)
+	_portrait_label.custom_minimum_size = Vector2(50, 50)
 	_portrait_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_portrait_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_portrait_label.add_theme_font_size_override("font_size", 32)
+	_portrait_label.add_theme_font_size_override("font_size", 36)
 	header.add_child(_portrait_label)
 
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 2)
 	header.add_child(info)
 
 	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 15)
-	_name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	UITheme.style_label(_name_label, UITheme.FONT_HEADER, UITheme.TEXT_PRIMARY)
 	info.add_child(_name_label)
 
 	_rank_label = Label.new()
-	_rank_label.add_theme_font_size_override("font_size", 12)
+	UITheme.style_label(_rank_label, UITheme.FONT_SMALL, UITheme.TEXT_SECONDARY)
 	info.add_child(_rank_label)
 
-	# Stats
+	# Stats panel
+	var stats_panel := PanelContainer.new()
+	stats_panel.add_theme_stylebox_override("panel", UITheme.create_panel_stylebox(UITheme.BG_DARK, 1))
+	main_vbox.add_child(stats_panel)
+
 	_stats_container = VBoxContainer.new()
-	main_vbox.add_child(_stats_container)
+	_stats_container.add_theme_constant_override("separation", 4)
+	stats_panel.add_child(_stats_container)
 
 	var success_hbox := HBoxContainer.new()
 	_stats_container.add_child(success_hbox)
 
 	var success_title := Label.new()
 	success_title.text = "نسبة النجاح: "
-	success_title.add_theme_font_size_override("font_size", 11)
-	success_title.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
+	UITheme.style_label(success_title, UITheme.FONT_SMALL, UITheme.TEXT_MUTED)
 	success_hbox.add_child(success_title)
 
 	_success_value_label = Label.new()
-	_success_value_label.add_theme_font_size_override("font_size", 11)
+	UITheme.style_label(_success_value_label, UITheme.FONT_SMALL, UITheme.SUCCESS)
 	success_hbox.add_child(_success_value_label)
 
 	_specialty_label = Label.new()
-	_specialty_label.add_theme_font_size_override("font_size", 11)
-	_specialty_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+	UITheme.style_label(_specialty_label, UITheme.FONT_SMALL, UITheme.TEXT_SECONDARY)
 	_stats_container.add_child(_specialty_label)
 
 	_cost_label = Label.new()
-	_cost_label.add_theme_font_size_override("font_size", 12)
-	_cost_label.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
+	UITheme.style_label(_cost_label, UITheme.FONT_SMALL, UITheme.ACCENT_GOLD)
 	main_vbox.add_child(_cost_label)
 
 	# Progress bar
 	_progress_bar = ProgressBar.new()
-	_progress_bar.custom_minimum_size = Vector2(0, 10)
+	_progress_bar.custom_minimum_size = Vector2(0, 12)
 	_progress_bar.show_percentage = false
 	_progress_bar.visible = false
-	_style_progress_bar(_progress_bar)
+	UITheme.style_progress_bar(_progress_bar, UITheme.INFO, UITheme.BG_DARK)
 	main_vbox.add_child(_progress_bar)
 
 	# Footer
 	var footer := HBoxContainer.new()
-	footer.add_theme_constant_override("separation", 6)
+	footer.add_theme_constant_override("separation", 8)
 	main_vbox.add_child(footer)
 
 	_status_label = Label.new()
-	_status_label.add_theme_font_size_override("font_size", 11)
+	UITheme.style_label(_status_label, UITheme.FONT_BODY, UITheme.TEXT_PRIMARY)
 	_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(_status_label)
 
 	_fire_button = Button.new()
 	_fire_button.text = "إقالة"
 	_fire_button.visible = false
+	_fire_button.custom_minimum_size = Vector2(70, 36)
 	_fire_button.pressed.connect(func(): fire_pressed.emit(adventurer))
-	var fire_style := UITheme.create_button_stylebox(UITheme.ERROR.darkened(0.5))
-	_fire_button.add_theme_stylebox_override("normal", fire_style)
+	UITheme.style_button(_fire_button, UITheme.ERROR.darkened(0.4))
 	footer.add_child(_fire_button)
 
 	_action_button = Button.new()
 	_action_button.text = "توظيف"
+	_action_button.custom_minimum_size = Vector2(90, 36)
 	_action_button.pressed.connect(_on_action_pressed)
-	var btn_style := UITheme.create_button_stylebox(UITheme.SUCCESS.darkened(0.5))
-	_action_button.add_theme_stylebox_override("normal", btn_style)
+	UITheme.style_button(_action_button, UITheme.SUCCESS.darkened(0.4))
 	footer.add_child(_action_button)
 
-func _style_progress_bar(bar: ProgressBar) -> void:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = UITheme.BG_DARK
-	bg.set_corner_radius_all(4)
-	bar.add_theme_stylebox_override("background", bg)
+	# Hover effect
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = UITheme.INFO
-	fill.set_corner_radius_all(4)
-	bar.add_theme_stylebox_override("fill", fill)
+func _on_mouse_entered() -> void:
+	if _tween:
+		_tween.kill()
+	_tween = create_tween()
+	var hover_style := UITheme.create_card_stylebox(UITheme.BG_HOVER)
+	add_theme_stylebox_override("panel", hover_style)
+
+func _on_mouse_exited() -> void:
+	if _tween:
+		_tween.kill()
+	_tween = create_tween()
+	var normal_style := UITheme.create_card_stylebox(UITheme.BG_PANEL)
+	add_theme_stylebox_override("panel", normal_style)
 
 func set_adventurer(a: AdventurerData, hired: bool = false) -> void:
 	adventurer = a
@@ -148,7 +153,7 @@ func set_adventurer(a: AdventurerData, hired: bool = false) -> void:
 	_update_display()
 
 func _update_display() -> void:
-	if not adventurer:
+	if not adventurer or not _portrait_label:
 		return
 
 	_portrait_label.text = adventurer.portrait_char
@@ -163,7 +168,7 @@ func _update_display() -> void:
 	if adventurer.specialty:
 		var dungeon := DataRegistry.get_dungeon(adventurer.specialty)
 		if dungeon:
-			_specialty_label.text = "تخصص: %s" % dungeon.name_ar
+			_specialty_label.text = "⚔ تخصص: %s" % dungeon.name_ar
 			_specialty_label.visible = true
 	else:
 		_specialty_label.visible = false
@@ -173,19 +178,21 @@ func _update_display() -> void:
 		_action_button.text = "إرسال مهمة"
 		_fire_button.visible = adventurer.is_available
 		_action_button.disabled = not adventurer.is_available
+		UITheme.style_button(_action_button, UITheme.INFO.darkened(0.4))
 
 		if adventurer.is_available:
-			_status_label.text = "متاح"
+			_status_label.text = "✓ متاح"
 			_status_label.add_theme_color_override("font_color", UITheme.SUCCESS)
 		else:
-			_status_label.text = "في مهمة"
+			_status_label.text = "⏳ في مهمة"
 			_status_label.add_theme_color_override("font_color", UITheme.WARNING)
 	else:
-		_cost_label.text = "تكلفة التوظيف: %d ذهب" % adventurer.hire_cost
+		_cost_label.text = "💰 تكلفة التوظيف: %d ذهب" % adventurer.hire_cost
 		_cost_label.visible = true
 		_action_button.text = "توظيف"
 		_fire_button.visible = false
 		_status_label.text = ""
+		UITheme.style_button(_action_button, UITheme.SUCCESS.darkened(0.4))
 
 func _on_action_pressed() -> void:
 	if is_hired:
