@@ -137,7 +137,7 @@ func _handle_mission_return(event: Dictionary) -> void:
 	GameManager.notify("عاد %s من المهمة!" % event.adventurer_name, "info")
 
 func _complete_order(order: Dictionary) -> void:
-	var success := randf() < order.success_rate
+	var success: bool = randf() < float(order.success_rate)
 	if success:
 		var item := InventoryItem.new(order.item, order.quantity, order.quality)
 		item.purchase_price = order.cost
@@ -152,7 +152,7 @@ func _complete_mission(mission: Dictionary) -> void:
 	var adventurer: AdventurerData = mission.adventurer
 	adventurer.is_available = true
 
-	var success := randf() < mission.success_rate
+	var success: bool = randf() < float(mission.success_rate)
 	if success:
 		# Add materials
 		for mat_id in mission.rewards:
