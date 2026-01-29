@@ -12,6 +12,7 @@ var _portrait_label: Label
 var _name_label: Label
 var _rank_label: Label
 var _stats_container: VBoxContainer
+var _success_value_label: Label
 var _specialty_label: Label
 var _cost_label: Label
 var _status_label: Label
@@ -83,10 +84,9 @@ func _setup_ui() -> void:
 	success_title.add_theme_color_override("font_color", UITheme.TEXT_MUTED)
 	success_hbox.add_child(success_title)
 
-	var success_value := Label.new()
-	success_value.name = "success_value"
-	success_value.add_theme_font_size_override("font_size", 11)
-	success_hbox.add_child(success_value)
+	_success_value_label = Label.new()
+	_success_value_label.add_theme_font_size_override("font_size", 11)
+	success_hbox.add_child(_success_value_label)
 
 	_specialty_label = Label.new()
 	_specialty_label.add_theme_font_size_override("font_size", 11)
@@ -157,9 +157,8 @@ func _update_display() -> void:
 	_rank_label.text = "الرتبة: %s" % adventurer.get_rank_name()
 	_rank_label.add_theme_color_override("font_color", adventurer.get_rank_color())
 
-	var success_label := _stats_container.get_node("HBoxContainer/success_value") as Label
-	if success_label:
-		success_label.text = "%d%%" % int(adventurer.success_rate * 100)
+	if _success_value_label:
+		_success_value_label.text = "%d%%" % int(adventurer.success_rate * 100)
 
 	if adventurer.specialty:
 		var dungeon := DataRegistry.get_dungeon(adventurer.specialty)

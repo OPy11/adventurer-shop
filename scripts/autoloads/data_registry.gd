@@ -18,8 +18,8 @@ func _ready() -> void:
 
 func _create_materials() -> void:
 	# Common materials
-	_add_material("iron_ore", "خام الحديد", "Iron Ore", Enums.Rarity.COMMON, 5, "�ite")
-	_add_material("copper_ore", "خام النحاس", "Copper Ore", Enums.Rarity.COMMON, 3, "�ite")
+	_add_material("iron_ore", "خام الحديد", "Iron Ore", Enums.Rarity.COMMON, 5, "ite")
+	_add_material("copper_ore", "خام النحاس", "Copper Ore", Enums.Rarity.COMMON, 3, "▫")
 	_add_material("leather", "جلد", "Leather", Enums.Rarity.COMMON, 8, "▤")
 	_add_material("wood", "خشب", "Wood", Enums.Rarity.COMMON, 2, "▦")
 	_add_material("cloth", "قماش", "Cloth", Enums.Rarity.COMMON, 4, "▨")
@@ -102,7 +102,7 @@ func _create_suppliers() -> void:
 	_add_supplier("old_wizard", "الساحر العجوز", Enums.SupplierType.ENCHANTER, Enums.Quality.MASTERWORK, 0.9, 300, 0.6, ["arcane_amulet", "star_pendant"], "🧙")
 	_add_supplier("tarek_leather", "طارق الجلاد", Enums.SupplierType.LEATHERWORKER, Enums.Quality.STANDARD, 0.65, 50, 1.1, ["leather_armor"], "👨‍🏭")
 
-func _add_supplier(id: String, name_ar: String, type: Enums.SupplierType, quality: Enums.Quality, mastery: float, cost: int, speed: float, specs: Array, portrait: String) -> void:
+func _add_supplier(id: String, name_ar: String, type: Enums.SupplierType, quality: Enums.Quality, mastery: float, cost: int, speed: float, specs: PackedStringArray, portrait: String) -> void:
 	var sup := SupplierData.new()
 	sup.id = id
 	sup.name_ar = name_ar

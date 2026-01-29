@@ -8,7 +8,7 @@ extends Resource
 @export var mastery: float = 0.5 # 0.0 to 1.0 - affects success rate
 @export var contract_cost: int = 100 # Upfront cost
 @export var crafting_speed: float = 1.0 # Multiplier for crafting time
-@export var specialties: Array[String] = [] # Item IDs they excel at
+@export var specialties: PackedStringArray = [] # Item IDs they excel at
 @export var reputation: int = 50 # 0-100
 @export var portrait_char: String = "P" # Unicode for portrait
 

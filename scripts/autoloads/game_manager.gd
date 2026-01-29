@@ -54,17 +54,21 @@ func modify_reputation(amount: int) -> void:
 	reputation_changed.emit(reputation)
 
 func add_to_inventory(item: InventoryItem) -> void:
+	if not item or not item.item_data:
+		return
 	# Check if similar item exists
 	for inv_item in inventory:
-		if inv_item.item_data.id == item.item_data.id and inv_item.quality == item.quality:
+		if inv_item.item_data and inv_item.item_data.id == item.item_data.id and inv_item.quality == item.quality:
 			inv_item.quantity += item.quantity
 			return
 	inventory.append(item)
 
 func remove_from_inventory(item: InventoryItem, amount: int = 1) -> bool:
+	if not item or not item.item_data:
+		return false
 	for i in range(inventory.size()):
 		var inv_item := inventory[i]
-		if inv_item.item_data.id == item.item_data.id and inv_item.quality == item.quality:
+		if inv_item.item_data and inv_item.item_data.id == item.item_data.id and inv_item.quality == item.quality:
 			if inv_item.quantity >= amount:
 				inv_item.quantity -= amount
 				if inv_item.quantity <= 0:
@@ -135,4 +139,11 @@ func load_save_data(data: Dictionary) -> void:
 	shop_name = data.get("shop_name", "متجر المغامر")
 	materials = data.get("materials", {})
 	stats = data.get("stats", stats)
-	# Inventory loading requires DataRegistry
+
+	# Load inventory
+	inventory.clear()
+	var inv_data: Array = data.get("inventory", [])
+	for item_dict: Dictionary in inv_data:
+		var item := InventoryItem.from_dict(item_dict, DataRegistry.items)
+		if item.item_data:
+			inventory.append(item)

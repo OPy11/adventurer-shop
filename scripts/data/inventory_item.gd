@@ -49,8 +49,9 @@ func to_dict() -> Dictionary:
 
 static func from_dict(data: Dictionary, item_registry: Dictionary) -> InventoryItem:
 	var item := InventoryItem.new()
-	if data.get("item_id", "") in item_registry:
-		item.item_data = item_registry[data.item_id]
+	var item_id: String = data.get("item_id", "")
+	if item_id in item_registry:
+		item.item_data = item_registry[item_id]
 	item.quality = data.get("quality", Enums.Quality.STANDARD)
 	item.quantity = data.get("quantity", 1)
 	item.purchase_price = data.get("purchase_price", 0)

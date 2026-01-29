@@ -39,11 +39,15 @@ func _setup_structure() -> void:
 		_create_header()
 
 func _create_header() -> void:
+	if _header_label:
+		return
 	_header_label = Label.new()
 	_header_label.text = header_text
 	_header_label.add_theme_color_override("font_color", UITheme.ACCENT_GOLD)
 	_header_label.add_theme_font_size_override("font_size", 18)
 	_header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(_header_label)
+	move_child(_header_label, 0)
 
 func _update_style() -> void:
 	var style := StyleBoxFlat.new()

@@ -53,7 +53,6 @@ func _apply_random_fluctuation() -> void:
 		current_prices[item_id] = int(clampf(new_price, base_prices[item_id] * 0.5, base_prices[item_id] * 2.0))
 
 func _apply_season_effects() -> void:
-	var multiplier := 1.0
 	match season:
 		"war":
 			# Weapons more valuable

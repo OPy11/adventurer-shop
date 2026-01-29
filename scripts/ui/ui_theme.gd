@@ -79,3 +79,14 @@ static func get_quality_color(quality: Enums.Quality) -> Color:
 		Enums.Quality.EXCELLENT: return Color("#3b82f6")
 		Enums.Quality.MASTERWORK: return Color("#f59e0b")
 		_: return Color.WHITE
+
+static func style_progress_bar(bar: ProgressBar, fill_color: Color = SUCCESS, bg_color: Color = BG_DARK) -> void:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = bg_color
+	bg.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("background", bg)
+
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = fill_color
+	fill.set_corner_radius_all(4)
+	bar.add_theme_stylebox_override("fill", fill)
